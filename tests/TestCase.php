@@ -2,6 +2,7 @@
 
 namespace Tests;
 use App\Models\User;
+use App\Models\Chirp;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
@@ -51,5 +52,20 @@ abstract class TestCase extends BaseTestCase
         $reponse->assertSessionHasErrors(['message']);
     }
 
-    //TEST 3
+    //TEST 3 (le fichier ChirpFactory a été créé et importé dans le model Chirp)
+
+    public function test_les_chirps_sont_affiches_sur_la_page_d_accueil()
+    {
+        // On simule un utilisateur connecté
+        $utilisateur = User::factory()->create();
+        $this->actingAs($utilisateur);
+        //la méthode factory crée des chirps avec l'id du user simulé
+        $chirps = Chirp::factory()->count(3)->create([
+            'user_id' => $utilisateur->id
+        ]);
+        $reponse = $this->get('/chirps');
+        foreach ($chirps as $chirp) {
+        $reponse->assertSee($chirp->message);
+        }
+    }
 }
