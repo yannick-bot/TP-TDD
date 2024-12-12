@@ -92,4 +92,21 @@ abstract class TestCase extends BaseTestCase
             'message' => 'Chirp modifié',
         ]);
     }
+
+    //TEST 5
+
+    public function test_un_utilisateur_peut_supprimer_son_chirp()
+    {
+        $utilisateur = User::factory()->create();
+        $chirp = Chirp::factory()->create(['user_id' => $utilisateur->id]);
+        $this->actingAs($utilisateur);
+        $reponse = $this->delete("/chirps/{$chirp->id}");
+        $reponse->assertStatus(302);
+        // Suivre la redirection et vérifier le statut final
+        $suiviReponse = $this->get($reponse->headers->get('Location'));
+        $suiviReponse->assertStatus(200);
+        $this->assertDatabaseMissing('chirps', [
+            'id' => $chirp->id,
+        ]);
+    }
 }
