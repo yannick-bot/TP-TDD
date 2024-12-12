@@ -142,4 +142,21 @@ abstract class TestCase extends BaseTestCase
 
     }
 
+    //TEST 7
+
+    public function test_un_chirp_modifié_ne_peut_pas_avoir_un_contenu_vide_ou_trop_long()
+    {
+        $utilisateur = User::factory()->create();
+        $this->actingAs($utilisateur);
+        $chirp = Chirp::factory()->create(['user_id' => $utilisateur->id]);
+        $reponse = $this->put("/chirps/{$chirp->id}", [
+            'message' => ''
+        ]);
+        $reponse->assertSessionHasErrors(['message']);
+        $reponse2 = $this->put("/chirps/{$chirp->id}", [
+            'message' => str_repeat('a', 256)
+        ]);
+        $reponse2->assertSessionHasErrors(['message']);
+    }
+
 }
