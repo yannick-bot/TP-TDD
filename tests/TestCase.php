@@ -109,4 +109,37 @@ abstract class TestCase extends BaseTestCase
             'id' => $chirp->id,
         ]);
     }
+
+    //TEST 6
+
+    public function test_un_utilisateur_ne_peut_pas_supprimer_ou_modifier_le_chirp_d_un_autre()
+    {
+
+        //création du user2  connecté
+        $utilisateur2 = User::factory()->create();
+        $this->actingAs($utilisateur2);
+        $chirp2 = Chirp::factory()->create([
+            'user_id' => $utilisateur2->id
+        ]);
+
+        //création du user1 qui est connecté
+        $utilisateur1 = User::factory()->create();
+        $this->actingAs($utilisateur1);
+
+        /**
+         * le user1 essaie de modifier le chirp du user2
+         * Toute requête HTTP ($this->put(), $this->post(), etc.),
+         * effectuée après $this->actingAs($user) est exécutée dans le contexte de l'utilisateur spécifié.
+        */
+        $reponse = $this->put("/chirps/{$chirp2->id}", [
+            'message' => 'Chirp modifié'
+        ]);
+        $reponse->assertStatus(403);
+
+        //le user1 essaie de supprimer le chirp du user2
+        $reponse = $this->delete("/chirps/{$chirp2->id}");
+        $reponse->assertStatus(403);
+
+    }
+
 }
