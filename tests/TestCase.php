@@ -23,6 +23,9 @@ abstract class TestCase extends BaseTestCase
 
         // Vérifier que la création du chirp a entrainé une redirection
         $reponse->assertStatus(302);
+        // Suivre la redirection et vérifier le statut final
+        $suiviReponse = $this->get($reponse->headers->get('Location'));
+        $suiviReponse->assertStatus(200);
         // Vérifier que le chirp a été ajouté à la base de données
         $this->assertDatabaseHas('chirps', [
             'message' => 'Mon premier chirp !',
@@ -67,5 +70,26 @@ abstract class TestCase extends BaseTestCase
         foreach ($chirps as $chirp) {
         $reponse->assertSee($chirp->message);
         }
+    }
+
+    //TEST 4
+
+    public function test_un_utilisateur_peut_modifier_son_chirp()
+    {
+        $utilisateur = User::factory()->create();
+        $chirp = Chirp::factory()->create(['user_id' => $utilisateur->id]);
+        $this->actingAs($utilisateur);
+        $reponse = $this->put("/chirps/{$chirp->id}", [
+            'message' => 'Chirp modifié'
+        ]);
+        $reponse->assertStatus(302);
+        // Suivre la redirection et vérifier le statut final
+        $suiviReponse = $this->get($reponse->headers->get('Location'));
+        $suiviReponse->assertStatus(200);
+        // Vérifie si le chirp existe dans la base de donnée.
+        $this->assertDatabaseHas('chirps', [
+            'id' => $chirp->id,
+            'message' => 'Chirp modifié',
+        ]);
     }
 }
