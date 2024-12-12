@@ -159,4 +159,24 @@ abstract class TestCase extends BaseTestCase
         $reponse2->assertSessionHasErrors(['message']);
     }
 
+    // TEST 8
+
+    public function test_un_user_connecté_ne_peut_pas_créer_plus_de_10_chirps()
+    {
+        $utilisateur = User::factory()->create();
+        $this->actingAs($utilisateur);
+        for($i = 0; $i < 11; $i++) {
+            $reponse = $this->post('/chirps', [
+                'message' => 'chirp numéro ' . $i
+            ]);
+
+            if ($i < 10) {
+                $reponse->assertStatus(302);
+            } else {
+                $reponse->assertSessionHasErrors(['message']);
+            }
+        }
+
+    }
+
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chirp;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
@@ -36,11 +37,19 @@ class ChirpController extends Controller
     public function store(Request $request): RedirectResponse
     {
         //
-        $validated = $request->validate([
-            'message' => 'required|string|max:255',
-        ]);
-
-        $request->user()->chirps()->create($validated);
+        // Définir les règles de validation
+         $rules = [ 'message' => 'required|string|max:255', ];
+         // Compter le nombre de chirps de l'utilisateur actuel
+         $userChirpsCount = Chirp::where('user_id', $request->user()->id)->count();
+          // Créer le validateur et ajouter la validation conditionnelle
+          $validated = Validator::make($request->all(), $rules)
+            ->after(function ($validator) use ($userChirpsCount) {
+                 if ($userChirpsCount >= 10) {
+                    $validator->errors()->add('message', 'You cannot create more than 10 chirps.');
+                }
+            })->validate();
+            // Créer le chirp
+            $request->user()->chirps()->create($validated);
 
         return redirect(route('chirps.index'));
     }
