@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Policies\ChirpPolicy;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,8 +19,10 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    protected $policies = [Chirp::class => ChirpPolicy::class,];
+    public function boot()
     {
-        //
+        $this->registerPolicies();
+        Gate::define('like', [ChirpPolicy::class, 'like']);
     }
 }

@@ -114,4 +114,17 @@ class ChirpController extends Controller
 
         return redirect(route('chirps.index'));
     }
+
+    public function like(Chirp $chirp): RedirectResponse
+    {
+        //
+
+
+        $chirp->liked = !$chirp->liked;// Alterne le statut de 'liked'
+        $chirp->save();
+
+        return redirect(route('chirps.index'));
+    }
+
+
 }

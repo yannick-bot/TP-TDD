@@ -214,4 +214,36 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
+    //TEST 10
+
+    public function test_un_utilisateur_peut_liker_un_chirp()
+    {
+        $utilisateur = User::factory()->create();
+        $chirp = Chirp::factory()->create([
+            'user_id' => $utilisateur->id
+        ]);
+        $this->actingAs($utilisateur);
+        $reponse = $this->post("/chirps/{$chirp->id}/like", [
+        ]);
+        // Suivre la redirection et vérifier le statut final
+        $suiviReponse = $this->get($reponse->headers->get('Location'));
+        //il peut liker une fois
+        $suiviReponse->assertOk();
+        // Vérifie si le like existe dans la base de donnée.
+        $this->assertDatabaseHas('chirps', [
+            'id' => $chirp->id,
+            'liked' => true,
+        ]);
+        //il ne peut pas liker deux foix le mm chirp
+        $reponse2 = $this->post("/chirps/{$chirp->id}/like", [
+        ]);
+        $this->assertDatabaseMissing('chirps', [
+            'id' => $chirp->id,
+            'liked' => true
+        ]);
+
+
+
+    }
+
 }

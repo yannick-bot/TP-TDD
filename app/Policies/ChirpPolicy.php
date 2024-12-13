@@ -63,4 +63,9 @@ class ChirpPolicy
     {
         return false;
     }
+
+    public function like(User $user, Chirp $chirp): bool {
+        // Autoriser l'utilisateur à liker un chirp s'il n'est pas l'auteur du chirp
+         return $user->id !== $chirp->user_id;
+        }
 }
