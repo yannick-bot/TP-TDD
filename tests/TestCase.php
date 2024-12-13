@@ -190,7 +190,7 @@ abstract class TestCase extends BaseTestCase
         $utilisateur = User::factory()->create();
         $this->actingAs($utilisateur);
         //pour créer une date aléatoire entre today et il y a 5 ans
-        $randomDate = Carbon::createFromTimestamp(rand(-107788000, Carbon::now()->timestamp))->format('Y-d-m H:i:s');
+        $randomDate = Carbon::createFromTimestamp(rand(-107788000, Carbon::now()->timestamp))->format('Y-m-d H:i:s');
 
         // créer des chirps à des dates aléatoires
         $chirps = Chirp::factory()->count(5)->create([
