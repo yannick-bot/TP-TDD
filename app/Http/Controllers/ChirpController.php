@@ -9,6 +9,7 @@ use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Carbon\Carbon;
 
 class ChirpController extends Controller
 {
@@ -17,9 +18,18 @@ class ChirpController extends Controller
      */
     public function index() : View
     {
-        //
+        $chirps = Chirp::with('user')->latest()->get();
+        // Définir la date limite
+        $sevenDaysAgo = Carbon::now()->subDays(7);
+        // Filtrer les chirps pour ne garder que ceux datant des 7 derniers jours
+           $validChirps = $chirps->filter(
+            function ($chirp) use ($sevenDaysAgo) {
+                $createdAt = Carbon::parse($chirp->created_at);
+                return $createdAt->between($sevenDaysAgo, Carbon::now());
+            });
+
         return view('chirps.index', [
-            'chirps' => Chirp::with('user')->latest()->get(),
+            'chirps' => $validChirps,
         ]);
     }
 

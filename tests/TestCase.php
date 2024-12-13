@@ -3,6 +3,7 @@
 namespace Tests;
 use App\Models\User;
 use App\Models\Chirp;
+use Carbon\Carbon;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
@@ -148,7 +149,9 @@ abstract class TestCase extends BaseTestCase
     {
         $utilisateur = User::factory()->create();
         $this->actingAs($utilisateur);
-        $chirp = Chirp::factory()->create(['user_id' => $utilisateur->id]);
+        $chirp = Chirp::factory()->create([
+            'user_id' => $utilisateur->id
+        ]);
         $reponse = $this->put("/chirps/{$chirp->id}", [
             'message' => ''
         ]);
@@ -171,12 +174,44 @@ abstract class TestCase extends BaseTestCase
             ]);
 
             if ($i < 10) {
-                $reponse->assertStatus(302);
+                $reponse->assertRedirect();
             } else {
                 $reponse->assertSessionHasErrors(['message']);
             }
         }
 
+    }
+
+    // TEST 9
+
+    public function test_filtrer_les_chirps()
+    {
+        // On simule un utilisateur connecté
+        $utilisateur = User::factory()->create();
+        $this->actingAs($utilisateur);
+        //pour créer une date aléatoire entre today et il y a 5 ans
+        $randomDate = Carbon::createFromTimestamp(rand(-107788000, Carbon::now()->timestamp))->format('Y-d-m H:i:s');
+
+        // créer des chirps à des dates aléatoires
+        $chirps = Chirp::factory()->count(5)->create([
+            'user_id' => $utilisateur->id,
+            'created_at' => $randomDate
+        ]);
+
+        //récupérer les chirps de la vue index
+        $reponse = $this->get('/chirps');
+        $sevenDaysAgo = Carbon::now()->subDays(7);
+        //si le chirp date de longtemps il ne doit pas être affiché dans la vue
+        foreach ($chirps as $chirp) {
+            $createdAt = Carbon::parse($chirp['created_at']);
+            if($this->assertFalse(
+                $createdAt->between($sevenDaysAgo, Carbon::now())
+                )
+            ){
+                $reponse->assertDontSee($chirp->message);
+            }
+
+        }
     }
 
 }
